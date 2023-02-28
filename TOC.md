@@ -200,6 +200,7 @@
     - [使用 Top SQL 定位系统资源消耗过多的查询](/dashboard/top-sql.md)
     - [通过日志定位消耗系统资源多的查询](/identify-expensive-queries.md)
     - [保存和恢复集群现场信息](/sql-plan-replayer.md)
+  - [获取支持](/support.md)
 - 性能调优
   - 优化手册
     - [优化概述](/performance-tuning-overview.md)
@@ -978,6 +979,7 @@
   - v6.2
     - [6.2.0-DMR](/releases/release-6.2.0.md)
   - v6.1
+    - [6.1.5](/releases/release-6.1.5.md)
     - [6.1.4](/releases/release-6.1.4.md)
     - [6.1.3](/releases/release-6.1.3.md)
     - [6.1.2](/releases/release-6.1.2.md)
