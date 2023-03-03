@@ -109,35 +109,35 @@ mysql> SELECT * FROM t1;
 - 可选值：`aes-128-ecb`、`aes-192-ecb`、`aes-256-ecb`、`aes-128-cbc`、`aes-192-cbc`、`aes-256-cbc`、`aes-128-ofb`、`aes-192-ofb`、`aes-256-ofb`、`aes-128-cfb`、`aes-192-cfb`、`aes-256-cfb`
 - 该变量用于设置 `AES_ENCRYPT()` 和 `AES_DECRYPT()` 函数的加密模式。
 
-### character_set_client
+### `character_set_client`
 
 - 作用域：SESSION | GLOBAL
 - 是否持久化到集群：是
 - 默认值：`utf8mb4`
 - 这个变量表示从客户端发出的数据所用的字符集。有关更多 TiDB 支持的字符集和排序规则，参阅[字符集和排序规则](/character-set-and-collation.md)文档。如果需要更改字符集，建议使用 [`SET NAMES`](/sql-statements/sql-statement-set-names.md) 语句。
 
-### character_set_connection
+### `character_set_connection`
 
 - 作用域：SESSION | GLOBAL
 - 是否持久化到集群：是
 - 默认值：`utf8mb4`
 - 若没有为字符串常量指定字符集，该变量表示这些字符串常量所使用的字符集。
 
-### character_set_database
+### `character_set_database`
 
 - 作用域：SESSION | GLOBAL
 - 是否持久化到集群：是
 - 默认值：`utf8mb4`
 - 该变量表示当前默认在用数据库的字符集，**不建议设置该变量**。选择新的默认数据库后，服务器会更改该变量的值。
 
-### character_set_results
+### `character_set_results`
 
 - 作用域：SESSION | GLOBAL
 - 是否持久化到集群：是
 - 默认值：`utf8mb4`
 - 该变量表示数据发送至客户端时所使用的字符集。
 
-### character_set_server
+### `character_set_server`
 
 - 作用域：SESSION | GLOBAL
 - 是否持久化到集群：是
@@ -812,7 +812,7 @@ MPP 是 TiFlash 引擎提供的分布式计算框架，允许节点之间的数�
 - 设置该变量为 `ON` 可强制只存储[基本多文种平面 (BMP)](https://zh.wikipedia.org/zh-hans/Unicode字符平面映射) 编码区段内的 `utf8` 字符值。若要存储 BMP 区段外的 `utf8` 值，推荐使用 `utf8mb4` 字符集。
 - 早期版本的 TiDB 中 (v2.1.x)，`utf8` 检查更为宽松。如果你的 TiDB 集群是从早期版本升级的，推荐关闭该变量，详情参阅[升级与升级后常见问题](/faq/upgrade-faq.md)。
 
-### tidb_committer_concurrency <span class="version-mark">从 v6.1.0 版本开始引入</span>
+### `tidb_committer_concurrency` <span class="version-mark">从 v6.1.0 版本开始引入</span>
 
 - 作用域：GLOBAL
 - 是否持久化到集群：是
@@ -978,11 +978,11 @@ MPP 是 TiFlash 引擎提供的分布式计算框架，允许节点之间的数�
 >
 > 当前索引加速功能未完全兼容添加唯一索引操作。在添加唯一索引时，建议关闭索引加速功能（将 `tidb_ddl_enable_fast_reorg` 设置为 `OFF`）。
 >
-> 当前索引加速功能与 [PITR (Point-in-time recovery)](/br/br-pitr-guide.md) 功能不兼容。在使用索引加速功能时，需要确保后台没有启动 PITR 备份任务，否则可能会出现非预期结果。非预期场景包括：
+> 当关闭 [PITR (Point-in-time recovery)](/br/backup-and-restore-overview.md) 时使用索引加速功能，添加索引的速度预期是 v6.1.0 的 10 倍。但是同时开启 PITR 和索引加速时，不会有性能提升。为了优化性能，建议你先停止 PITR 后台备份任务，以索引加速的方式快速添加索引，然后再启动 PITR 备份任务。否则，可能会发生以下行为：
 >
-> - 如果先启动 PITR 备份任务，再添加索引，此时即使索引加速功能打开，也不会使用加速索引功能，但不影响索引兼容性。由于 PITR 备份任务会一直运行，相当于索引加速功能被关闭。在这种情况下，如果需要加速索引创建，你可以先停止 PITR 后台备份任务，启动并完成添加索引任务，然后再启动 PITR 后台备份任务，并做一次全量备份。
-> - 如果先启动添加索引加速任务，再启动 PITR 备份任务，此时 PITR 备份任务会报错，但不影响正在添加索引的任务。
-> - 如果同时启动 PITR 备份任务和添加索引加速任务，可能会由于两个任务无法察觉到对方而导致 PITR 不能成功备份增加的索引数据。
+> - 如果先启动 PITR 备份任务，再添加索引，此时即使索引加速功能打开，添加索引任务默认会自动回退到旧模式，即以较慢的速度添加索引，但 PITR 的备份任务能够正常运行并备份新增的索引数据。
+> - 如果先启动添加索引加速任务，再尝试启动 PITR 备份任务，此时 PITR 备份任务会抛出错误并退出，但这不会影响正在添加索引的任务。在索引加速任务完成后，你需要重新启动 PITR 日志备份任务，并手动执行一次全量备份。
+> - 如果同时启动 PITR 备份任务和添加索引加速任务，可能会由于两个任务无法察觉到对方而导致 PITR 不能成功备份新增的索引数据。在添加索引任务完成后，你仍需要重新启动 PITR 日志备份任务，并手动执行一次全量备份。
 
 ### `tidb_ddl_distribute_reorg` <span class="version-mark">从 v6.6.0 版本开始引入</span>
 
